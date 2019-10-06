@@ -5,4 +5,5 @@ docker/certs/*.csr
 docker/certs/*.ext
 docker/certs/*.key
 /wordpress
+/wp-data/*.sql*
 /mysql
