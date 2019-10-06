@@ -1,0 +1,6 @@
+docker/certs/*.crt
+docker/certs/*.csr
+docker/certs/*.ext
+docker/certs/*.key
+/wordpress
+/mysql

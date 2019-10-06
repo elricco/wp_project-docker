@@ -1,0 +1,88 @@
+version: "3.5"
+
+services:
+  traefik:
+    image: traefik:alpine
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - ./docker/traefik:/etc/traefik
+      - ./docker/certs/:/certs/
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.domain=${TRAEFIK_DOMAIN}"
+
+  adminer:
+    depends_on:
+      - mysql
+    image: adminer
+    restart: always
+    ports:
+      - 8000:8080
+    networks:
+      - web
+
+  wordpress:
+    depends_on:
+      - mysql
+    image: wordpress:php7.3
+    container_name: ${COMPOSE_PROJECT_NAME}-wordpress
+    hostname: ${COMPOSE_PROJECT_NAME}.${TRAEFIK_DOMAIN}
+    environment:
+      - WORDPRESS_DB_HOST=${COMPOSE_PROJECT_NAME}-db:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
+    volumes:
+    - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
+    - ./wordpress:/var/www/html/ # Full wordpress project
+      #- ./plugin-name/trunk/:/var/www/html/wp-content/plugins/plugin-name # Plugin development
+      #- ./theme-name/trunk/:/var/www/html/wp-content/themes/theme-name # Theme development
+    stdin_open: true
+    networks:
+      - web
+    tty: true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=80"
+      - "traefik.backend=${COMPOSE_PROJECT_NAME}-wordpress"
+      - "traefik.frontend.rule=Host:${COMPOSE_PROJECT_NAME}.${TRAEFIK_DOMAIN}"
+    restart: unless-stopped
+    networks:
+      - web
+
+  wpcli:
+    image: wordpress:cli
+    volumes:
+      - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./wordpress:/var/www/html
+    depends_on:
+      - mysql
+      - wordpress
+    networks:
+      - web
+
+  mysql:
+    image: mysql:5.7
+    container_name: ${COMPOSE_PROJECT_NAME}-db
+    stdin_open: true
+    tty: true
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    volumes:
+    - ./mysql/:/var/lib/mysql
+    networks:
+      - web
+    restart: unless-stopped
+
+networks:
+  web:
+    external:
+      name: ${COMPOSE_PROJECT_NAME}_default

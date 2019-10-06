@@ -1,0 +1,20 @@
+[ req ]
+default_bits           = 2048
+default_keyfile        = privkey
+distinguished_name     = req_distinguished_name
+attributes             = req_attributes
+prompt = no
+
+dirstring_type = nobmp
+
+[ req_distinguished_name ]
+C = DE
+ST = NRW
+L = Berlin
+O = Muster GmbH
+1.OU = IT
+CN = test.de
+emailAddress = test@test.de
+
+[ req_attributes ]
+challengePassword       = eigenes_passwort

@@ -1,0 +1,23 @@
+defaultEntryPoints = ["https","http"]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+      [[entryPoints.https.tls.certificates]]
+        certFile = "/certs/mywpproject.docker.localhost.crt"
+        keyFile = "/certs/mywpproject.docker.localhost.key"
+  [entryPoints.api]
+  address = ":8080"
+
+[api]
+entryPoint = "api"
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "docker.localhost"
+exposedByDefault = false
